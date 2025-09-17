@@ -8,6 +8,8 @@ source ~/.local/share/omarchy/default/bash/rc
 alias z='zeditor'
 alias zed='zeditor'
 alias reload='source ~/.bashrc'
+alias mine='sudo chown -R $USER:$USER .'
+alias ds='docker stop $(docker ps -q)'
 alias lzd='lazydocker'
 alias lzg='lazygit'
 
