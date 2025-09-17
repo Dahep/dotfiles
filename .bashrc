@@ -8,6 +8,8 @@ source ~/.local/share/omarchy/default/bash/rc
 alias z='zeditor'
 alias zed='zeditor'
 alias reload='source ~/.bashrc'
+alias lzd='lazydocker'
+alias lzg='lazygit'
 
 export PATH=$PATH:$HOME/bin
 #
