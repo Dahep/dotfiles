@@ -15,7 +15,7 @@ alias lzg='lazygit'
 
 export PATH=$PATH:$HOME/bin
 
-export SSH_AUTH_SOCK=~/.1password/agent.sock
+# export SSH_AUTH_SOCK=~/.1password/agent.sock
 #
 # Use VSCode instead of neovim as your default editor
 # export EDITOR="zed"
