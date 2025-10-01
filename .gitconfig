@@ -12,7 +12,9 @@
 [commit]
 	gpgsign = true
 [submodule]
-  recurse = true
+    recurse = true
+[url "ssh://git@"]
+	insteadOf = https://
 [user]
     name = Dahep
     email = d.herrmann.p@gmail.com
