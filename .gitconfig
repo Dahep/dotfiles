@@ -5,10 +5,6 @@
 	st = status
 [init]
 	defaultBranch = main
-[user]
-	name = DHerrmannP
-	email = dherrmann@addval.cl
-  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKy1F9sIqzMx476TeXMGx/vBNh78aUO75/gkMGknkJXi
 [gpg]
 	format = ssh
 [gpg "ssh"]
@@ -17,3 +13,9 @@
 	gpgsign = true
 [submodule]
   recurse = true
+[user]
+    name = Dahep
+    email = d.herrmann.p@gmail.com
+    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIILpD04IBRSiF24odOFiHNGbDpebhRqu9j2erVBiQpmu
+[includeIf "gitdir/i:~/workspace/addval/"]
+    path = ~/.gitconfig-addval
