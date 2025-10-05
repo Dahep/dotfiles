@@ -13,13 +13,11 @@
 	gpgsign = true
 [submodule]
     recurse = true
-[url "ssh://git@"]
-	insteadOf = https://
-[url "git@github-personal:Dahep"]
-	insteadOf = git@github.com:Dahep
 [user]
     name = DHerrmannP
     email = dherrmann@addval.cl
     signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKy1F9sIqzMx476TeXMGx/vBNh78aUO75/gkMGknkJXi
+[url "git@github-personal:Dahep"]
+	insteadOf = git@github.com:Dahep
 [includeIf "hasconfig:remote.*.url:*:Dahep/*.git"]
     path = ~/.gitconfig-personal
