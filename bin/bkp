@@ -1,0 +1,233 @@
+#!/bin/bash
+
+# bkp - Backup utility that copies files from origin paths to target path
+# Usage: bkp [-a] [-o <origin_path1> [origin_path2] ...] -t <target_path>
+#        or: command | bkp [-a] -t <target_path>
+
+set -e
+
+# Function to display usage
+usage() {
+    echo "Usage: $0 [-a] [-o <origin_path1> [origin_path2] ...] -t <target_path>"
+    echo "       or: command | $0 [-a] -t <target_path>"
+    echo ""
+    echo "Options:"
+    echo "  -a, --absolute    Treat input paths as absolute (strip \$HOME prefix)"
+    echo "  -o, --origin      Origin paths to backup"
+    echo "  -t, --target      Target path where backups will be stored"
+    echo "  -h, --help        Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 -o .config/nvim .bashrc -t /backup/location"
+    echo "  $0 -a -o \$HOME/.bashrc \$HOME/.vimrc -t /backup/location"
+    echo "  find \$HOME -name \"*.conf\" | $0 -a -t /backup/configs"
+    echo "  echo -e \".bashrc\\n.vimrc\" | $0 -t /backup/dotfiles"
+    exit 1
+}
+
+# Function to convert absolute path to relative (strip $HOME prefix)
+abs_to_rel() {
+    local abs_path="$1"
+    local home_path="$HOME"
+
+    # Normalize paths (remove trailing slashes)
+    abs_path="${abs_path%/}"
+    home_path="${home_path%/}"
+
+    # Check if path starts with $HOME
+    if [[ "$abs_path" == "$home_path"* ]]; then
+        # Remove $HOME prefix and leading slash
+        local rel_path="${abs_path#$home_path}"
+        rel_path="${rel_path#/}"
+
+        # Handle case where path is exactly $HOME
+        if [[ -z "$rel_path" ]]; then
+            rel_path="."
+        fi
+
+        echo "$rel_path"
+    else
+        echo "Error: Absolute path '$abs_path' is not under \$HOME ($home_path)" >&2
+        return 1
+    fi
+}
+
+# Function to read paths from stdin
+read_stdin_paths() {
+    local paths=()
+
+    # Read all input at once to handle both space and newline separated
+    local input
+    input=$(cat)
+
+    # Split on both spaces and newlines, filter empty entries
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            # Further split on spaces within each line
+            read -ra words <<< "$line"
+            for word in "${words[@]}"; do
+                if [[ -n "$word" ]]; then
+                    paths+=("$word")
+                fi
+            done
+        fi
+    done <<< "$input"
+
+    printf '%s\n' "${paths[@]}"
+}
+
+# Initialize variables
+origin_paths=()
+target_path=""
+absolute_paths=false
+parsing_origins=false
+parsing_target=false
+has_origin_flag=false
+
+# Check if we have piped input
+has_stdin_input=false
+if [[ ! -t 0 ]]; then
+    has_stdin_input=true
+fi
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -a|--absolute)
+            absolute_paths=true
+            shift
+            ;;
+        -o|--origin)
+            has_origin_flag=true
+            parsing_origins=true
+            parsing_target=false
+            shift
+            ;;
+        -t|--target)
+            parsing_origins=false
+            parsing_target=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            if [[ "$parsing_origins" == true ]]; then
+                origin_paths+=("$1")
+            elif [[ "$parsing_target" == true ]]; then
+                if [[ -n "$target_path" ]]; then
+                    echo "Error: Multiple target paths specified. Only one target path is allowed."
+                    exit 1
+                fi
+                target_path="$1"
+                parsing_target=false
+            else
+                echo "Error: Unexpected argument '$1'"
+                usage
+            fi
+            shift
+            ;;
+    esac
+done
+
+# Handle piped input
+if [[ "$has_stdin_input" == true ]]; then
+    if [[ "$has_origin_flag" == true ]]; then
+        echo "Error: Cannot use both -o flag and piped input. Choose one input method."
+        exit 1
+    fi
+
+    # Read paths from stdin
+    mapfile -t stdin_paths < <(read_stdin_paths)
+    origin_paths=("${stdin_paths[@]}")
+fi
+
+# Validate arguments
+if [[ ${#origin_paths[@]} -eq 0 ]]; then
+    if [[ "$has_stdin_input" == true ]]; then
+        echo "Error: No paths received from stdin"
+    else
+        echo "Error: No origin paths specified"
+    fi
+    usage
+fi
+
+if [[ -z "$target_path" ]]; then
+    echo "Error: No target path specified"
+    usage
+fi
+
+# Process paths based on absolute/relative flag
+processed_paths=()
+for path in "${origin_paths[@]}"; do
+    if [[ "$absolute_paths" == true ]]; then
+        # Convert absolute path to relative
+        if rel_path=$(abs_to_rel "$path"); then
+            processed_paths+=("$rel_path")
+        else
+            echo "Skipping invalid absolute path: $path"
+            continue
+        fi
+    else
+        # Remove leading ./ if present for consistency
+        path="${path#./}"
+        processed_paths+=("$path")
+    fi
+done
+
+# Update origin_paths with processed paths
+origin_paths=("${processed_paths[@]}")
+
+# Expand target path to absolute path
+target_path=$(realpath "$target_path")
+
+echo "Backup started..."
+echo "Target directory: $target_path"
+echo "Path type: $([ "$absolute_paths" == true ] && echo "absolute (converted to relative)" || echo "relative")"
+echo "Origin paths: ${origin_paths[*]}"
+
+# Create target directory if it doesn't exist
+mkdir -p "$target_path"
+
+# Process each origin path
+for origin in "${origin_paths[@]}"; do
+    # Build full source path
+    source_path="$HOME/$origin"
+
+    # Build destination path (target + relative path from HOME)
+    dest_path="$target_path/$origin"
+
+    echo ""
+    echo "Processing: $origin"
+
+    # Check if source exists
+    if [[ ! -e "$source_path" ]]; then
+        echo "  Warning: Source '$source_path' does not exist, skipping..."
+        continue
+    fi
+
+    # Create destination directory structure
+    dest_dir=$(dirname "$dest_path")
+    mkdir -p "$dest_dir"
+
+    # Copy the file or directory
+    if [[ -d "$source_path" ]]; then
+        echo "  Copying directory: $source_path -> $dest_path"
+        # Use rsync for better directory copying with preservation of attributes
+        if command -v rsync >/dev/null 2>&1; then
+            rsync -av --delete "$source_path/" "$dest_path/"
+        else
+            # Fallback to cp if rsync is not available
+            cp -r "$source_path" "$dest_dir/"
+        fi
+    else
+        echo "  Copying file: $source_path -> $dest_path"
+        cp -p "$source_path" "$dest_path"
+    fi
+
+    echo "  ✓ Completed: $origin"
+done
+
+echo ""
+echo "Backup completed successfully!"
+echo "All files backed up to: $target_path"
