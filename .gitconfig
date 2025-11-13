@@ -3,8 +3,9 @@
 	br = branch
 	ci = commit
 	st = status
+    debug-includeIf = "!echo gitdir: $(git rev-parse --show-toplevel) >> ~/.git-testing.log"
 [init]
-	defaultBranch = main
+	defaultBranch = master
 [gpg]
 	format = ssh
 [gpg "ssh"]
@@ -19,7 +20,8 @@
     signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKy1F9sIqzMx476TeXMGx/vBNh78aUO75/gkMGknkJXi
 [url "git@github-personal:Dahep"]
 	insteadOf = git@github.com:Dahep
-[includeIf "gitdir/i:~/workspace/personal/"]
+; include for all repositories inside $HOME/workspace/personal/
+[includeIf "gitdir:~/workspace/personal/"]
     path = ~/.gitconfig-personal
 [includeIf "hasconfig:remote.*.url:*:Dahep/*.git"]
     path = ~/.gitconfig-personal
