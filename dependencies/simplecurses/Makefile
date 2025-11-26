@@ -1,6 +1,6 @@
 SHELL=bash
 PREFIX ?= /usr/local
-LIBDIR ?= $(DESTDIR)$(PREFIX)/lib
+LIBDIR ?= $(DESTDIR)$(PREFIX)
 
 CUR_SHA=$(shell git log -n1 --pretty='%h')
 CUR_BRANCH=$(shell git branch --show-current)
