@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-chmod +x bin/*
+find -L ~/bin -maxdepth 1 -type l -exec rm -- {} +
+chmod +x ~/bin/*
