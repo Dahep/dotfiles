@@ -17,6 +17,7 @@ alias lzd='lazydocker'
 alias lzg='lazygit'
 
 export PATH=$PATH:$HOME/bin
+export LOCAL_LIBS=$HOME/.local/lib
 
 export SSH_AUTH_SOCK=~/.1password/agent.sock
 export SSH_AGENT_SOCK=$SSH_AUTH_SOCK
