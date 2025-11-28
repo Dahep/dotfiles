@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-#if ~/bin does not exist, create it
-if [ ! -d ~/bin ]; then
-  mkdir ~/bin
+if [ ! -d ~/.local/lib ]; then
+  mkdir -p ~/.local/lib
 fi
-make -C dependencies/simplecurses install PREFIX=~/bin
+make -C dependencies/simplecurses install PREFIX=~/.local
