@@ -1,0 +1,2 @@
+simplecurses https://github.com/metal3d/bashsimplecurses.git
+steamsetup https://github.com/28allday/W.O.P.R.git

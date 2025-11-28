@@ -1,0 +1,15 @@
+Requirements
+	•	OS: Arch Linux or an Arch-based distro (uses pacman)
+	•	Compositor: Hyprland￼
+	•	Config: A Hypr config at one of:
+	•	~/.config/hypr/bindings.conf
+	•	~/.config/hypr/keybinds.conf
+	•	~/.config/hypr/hyprland.conf
+	•	Terminal: At least one of:
+	•	Ghostty (preferred)
+	•	kitty
+	•	Alacritty
+	•	foot
+	•	xterm (fallback)
+	•	Privileges:
+	•	A user account with sudo access (for pacman, udev rules, etc.)

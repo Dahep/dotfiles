@@ -1,0 +1,19 @@
+W.O.P.R. reads an optional configuration file from:
+	•	User-level (preferred): ~/.gaming-mode.conf
+	•	System-wide: /etc/gaming-mode.conf
+
+If neither exists, sensible defaults are used.
+
+Example ~/.gaming-mode.conf
+
+# Launch mode for Steam:
+#   bigpicture (default) → Steam -tenfoot
+#   gamepadui            → Steam -gamepadui
+	STEAM_LAUNCH_MODE=bigpicture
+
+# Performance mode:
+#   enabled  → adjust CPU governor + GPU performance settings while gaming
+#   disabled → leave CPU/GPU settings alone
+	PERFORMANCE_MODE=enabled
+
+You can safely create or edit this file at any time; changes will apply the next time you start Gaming Mode.
