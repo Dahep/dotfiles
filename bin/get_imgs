@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+
+set -eEo pipefail
+
+CHILD_DIRECTORY="downloaded_imgs_$(date +%Y%m%d_%H%M%S)"
+
+function url_exists() {
+    local url="$1"
+    if curl --connect-timeout 1 --output /dev/null --silent --fail -r 0-0 "$url"; then
+        return 0
+    else
+        return 
+    fi
+}
+
+function get_url() {
+    local url
+    # while not url_exists "$url"; do
+    while [ -z "$url" ]; do
+        url=$(gum input --placeholder "Enter URL")
+        if ! url_exists "$url"; then
+            gum log --structured --level error "URL does not exist or is unreachable: $url"
+            url=""
+        fi
+    done
+    echo "$url"
+}
+
+function get_extensions() {
+    local extensions
+    while [ -z "$extensions" ]; do
+        extensions=$(gum choose --no-limit "jpg" "jpeg" "png" "pdf" | tr "\n" "|")
+        extensions=${extensions%|}
+    done
+    echo "$extensions"
+}
+
+function get_parent_directory() {
+    local dir
+    dir="$(fd -t d -d 3 "" "$HOME" | fzf)"
+    echo "$dir"
+}
+
+function get_selected_urls() {
+    local url
+    url="$1"
+    local file_extensions
+    file_extensions="$2"
+    local selected_urls
+
+    selected_urls=$(lynx -dump -listonly -nonumbers -hiddenlinks=ignore "$url" | grep -E ".($file_extensions)" | sort -u | gum filter --no-limit)
+
+    echo "$selected_urls"
+}
+
+function download_imgs() {
+    local selected_urls
+    selected_urls="$1"
+    local target_directory
+    target_directory="$2"
+
+    if echo "$selected_urls" | xargs -P 0 -I{} curl -O --silent --create-dirs --output-dir "$target_directory" {};
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function print_downloaded_imgs() {
+    local target_directory
+    target_directory="$1"
+
+    fd -a .* $target_directory | tr "\n" " " | lp
+}
+
+URL=$(get_url)
+
+FILE_EXTENSIONS=$(get_extensions)
+
+SELECTED_URLS=$(get_selected_urls "$URL" "$FILE_EXTENSIONS")
+
+PARENT_DIRECTORY=$(get_parent_directory)
+TARGET_DIRECTORY="$PARENT_DIRECTORY$CHILD_DIRECTORY"
+
+download_imgs "$SELECTED_URLS" "$TARGET_DIRECTORY"
+
+gum confirm "Print downloaded images?" && print_downloaded_imgs "$TARGET_DIRECTORY"
